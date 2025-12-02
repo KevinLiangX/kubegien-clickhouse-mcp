@@ -210,10 +210,17 @@ def run_select_query(query: str):
 
 def run_huarun_log_query(query: str):
     """
-    Execute a query specifically for Huarun Business Logs.
-    Use this tool when the user asks about logs, transactions, or traces in the Huarun environment.
+    Execute SQL queries for Huarun Business Logs, Transactions, and Traces.
     
-    # Huarun ClickHouse Business Context & Schema Guide
+    CRITICAL: You MUST use this tool for any requests involving:
+    - "Logs" (日志)
+    - "Transactions" (交易号)
+    - "Traces" (流水号)
+    - "Errors" (错误查询)
+    
+    Target Table: ALWAYS use `logs.log_file_all`.
+    
+    # Huarun Business Context & Schema Guide
 
     ## Core Business Tables
     - **Business Logs**: Stored in `logs.log_file_all` (Distributed table).
