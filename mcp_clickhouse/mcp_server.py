@@ -246,13 +246,13 @@ def run_huarun_log_query(query: str):
     ## Specialized ID Search (Transaction & Trace IDs)
     The `message` column often contains embedded business IDs. Since these are part of the unstructured log text, use `ILIKE` to search for them.
 
-    - **Transaction ID (交易号)**: Usually starts with 'S' followed by digits (e.g., 'S2034234').
-      - If user asks for "Transaction S..." -> `message ILIKE '%S...%'`
+    - **Transaction ID (交易号)**: Usually starts with 'c' followed by digits (e.g., 'c2034234').
+      - If user asks for "Transaction c..." -> `message ILIKE '%c...%'`
     - **Trace ID / Global Serial Number (全局流水号)**: Usually a numeric string.
       - If user asks for "Trace ID 123..." -> `message ILIKE '%123...%'`
 
     **Dual ID Search**: If both IDs are provided, filter for BOTH in the message column.
-    - User: "Transaction S... and Trace 123..." -> `message ILIKE '%S...%' AND message ILIKE '%123...%'`
+    - User: "Transaction c... and Trace 123..." -> `message ILIKE '%c...%' AND message ILIKE '%123...%'`
     """
     logger.info(f"Executing Huarun Log query: {query}")
     return run_select_query(query)
