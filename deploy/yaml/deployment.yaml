@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse-mcp-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clickhouse-mcp-server
+  template:
+    metadata:
+      labels:
+        app: clickhouse-mcp-server
+    spec:
+      containers:
+      - name: clickhouse-mcp-server
+        image: rvm:5100/mcp/clickhouse:v1.0
+        ports:
+        - containerPort: 8000
+        env:
+          - name: CLICKHOUSE_MCP_SERVER_TRANSPORT
+            value: http
+          - name: CLICKHOUSE_MCP_BIND_HOST
+            value: 0.0.0.0
+          - name: CLICKHOUSE_MCP_BIND_PORT
+            value: "8000"
+          - name: CLICKHOUSE_SECURE
+            value: "false"
+          - name: CLICKHOUSE_HOST
+            value: 10.62.48.111
+          - name: CLICKHOUSE_PORT
+            value: "8123"
+          - name: CLICKHOUSE_USER
+            value: default
+          - name: CLICKHOUSE_PASSWORD
+            value: "password"
+      serviceAccount: clickhouse-mcp-server
+      serviceAccountName: clickhouse-mcp-server

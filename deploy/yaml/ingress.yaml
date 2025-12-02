@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: clickhouse-mcp-server
+  annotations:
+    kubernetes.io/ingress.class: system-access  # 老版本
+  name: clickhouse-mcp-server
+  namespace: default
+spec:
+  # ingressClassName: system-access # 新版本
+  rules:
+  - host: clickhouse-mcp-server.10.62.48.111.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: clickhouse-mcp-server
+            port:
+              number: 8000
+        path: /
+        pathType: ImplementationSpecific
