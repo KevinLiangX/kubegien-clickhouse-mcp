@@ -254,9 +254,64 @@ def run_huarun_log_query(query: str):
 
     **Dual ID Search**: If both IDs are provided, filter for BOTH in the message column.
     - User: "Transaction c... and Trace 123..." -> `message ILIKE '%c...%' AND message ILIKE '%123...%'`
+
+    ## Return Format
+    Returns a list of dictionaries, where each dictionary represents a log entry.
+    
+    By default, if the query returns too many fields (e.g. SELECT *), this tool filters the output to show only essential fields:
+    - `createdtime`, `cluster_name`, `node_name`, `namespace`, `app_name`, `workload_name`, `message`
+    
+    If you specifically need other fields (like `workload_type` or `log_name`), you can explicitly SELECT them.
     """
     logger.info(f"Executing Huarun Log query: {query}")
-    return run_select_query(query)
+    result = run_select_query(query)
+    
+    # Post-processing to filter columns if it looks like a raw/full query
+    # We use the presence of internal columns as a heuristic for "too much data"
+    internal_cols = {"dbcreatedtime", "file_offset", "expiretime", "id"}
+    
+    if isinstance(result, dict) and "columns" in result and "rows" in result:
+        cols = result["columns"]
+        rows = result["rows"]
+        
+        final_cols = cols
+        final_rows = rows
+
+        # If any internal column is present, we assume it's likely a SELECT * or broad query
+        # and we trim it to the essential user-facing columns.
+        if any(c in internal_cols for c in cols):
+            essential_cols = [
+                "createdtime", "cluster_name", "node_name", "namespace", 
+                "app_name", "workload_name", "message"
+            ]
+            
+            # Find indices of essential columns that exist in the result
+            keep_indices = []
+            filtered_cols = []
+            for i, col in enumerate(cols):
+                if col in essential_cols:
+                    keep_indices.append(i)
+                    filtered_cols.append(col)
+            
+            # If we found any essential columns, filter the rows
+            if keep_indices:
+                filtered_rows = []
+                for row in rows:
+                    new_row = [row[i] for i in keep_indices]
+                    filtered_rows.append(new_row)
+                
+                logger.info(f"Filtered result from {len(cols)} columns to {len(filtered_cols)} essential columns")
+                final_cols = filtered_cols
+                final_rows = filtered_rows
+
+        # Convert to list of dictionaries
+        list_of_dicts = []
+        for row in final_rows:
+            list_of_dicts.append(dict(zip(final_cols, row)))
+            
+        return list_of_dicts
+                
+    return result
 
 
 def create_clickhouse_client():
@@ -420,3 +475,6 @@ if get_chdb_config().enabled:
     )
     mcp.add_prompt(chdb_prompt)
     logger.info("chDB tools and prompts registered")
+
+
+
