@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import json
 from typing import Optional, List, Any
@@ -419,6 +420,3 @@ if get_chdb_config().enabled:
     )
     mcp.add_prompt(chdb_prompt)
     logger.info("chDB tools and prompts registered")
-
-
-

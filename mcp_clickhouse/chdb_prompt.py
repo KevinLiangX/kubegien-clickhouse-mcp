@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """chDB prompts for MCP server."""
 
 CHDB_PROMPT = """
