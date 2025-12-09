@@ -172,7 +172,8 @@ def execute_query(query: str):
     client = create_clickhouse_client()
     try:
         read_only = get_readonly_setting(client)
-        res = client.query(query, settings={"readonly": read_only})
+        tz = get_config().session_timezone
+        res = client.query(query, settings={"readonly": read_only, "session_timezone": tz})
         logger.info(f"Query returned {len(res.result_rows)} rows")
         return {"columns": res.column_names, "rows": res.result_rows}
     except Exception as err:
@@ -208,7 +209,6 @@ def run_select_query(query: str):
         logger.error(f"Unexpected error in run_select_query: {str(e)}")
         raise RuntimeError(f"Unexpected error during query execution: {str(e)}")
 
-
 def run_huarun_log_query(query: str):
     """
     Execute SQL queries for Huarun Business Logs, Transactions, and Traces.
@@ -220,6 +220,17 @@ def run_huarun_log_query(query: str):
     - "Errors" (错误查询)
     
     Target Table: ALWAYS use `logs.log_file_all`.
+    当涉及时间范围时，必须提供可执行 SQL（包含 WHERE 时间条件）。
+    示例：
+    - 固定窗口：
+      SELECT ... FROM logs.log_file_all
+      WHERE createdtime >= toDateTime('2025-12-08 10:00:00')
+        AND createdtime <  toDateTime('2025-12-08 12:00:00')
+      LIMIT 100;
+    - 相对时间：
+      SELECT ... FROM logs.log_file_all
+      WHERE createdtime >= now() - INTERVAL 30 MINUTE
+      LIMIT 100;
     
     # Huarun Business Context & Schema Guide
 
@@ -459,7 +470,7 @@ if get_config().enabled:
         mcp.add_tool(Tool.from_function(run_huarun_log_query))
         logger.info("ClickHouse tools and Huarun specialized tool registered")
     else:
-        logger.info("ClickHouse tools registered (Huarun context disabled)")
+        logger.info("ClickHouse tools registered")
 
 
 if get_chdb_config().enabled:
@@ -475,6 +486,3 @@ if get_chdb_config().enabled:
     )
     mcp.add_prompt(chdb_prompt)
     logger.info("chDB tools and prompts registered")
-
-
-

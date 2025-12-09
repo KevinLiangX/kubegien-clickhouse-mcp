@@ -163,6 +163,10 @@ class ClickHouseConfig:
 
         return config
 
+    @property
+    def session_timezone(self) -> str:
+        return os.getenv("CLICKHOUSE_SESSION_TIMEZONE", "Asia/Shanghai")
+
     def _validate_required_vars(self) -> None:
         """Validate that all required environment variables are set.
 
